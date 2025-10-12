@@ -30,3 +30,6 @@ venv/
 
 # VS Codeのエディタ設定フォルダ
 .vscode/
+
+local.db
+.env

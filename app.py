@@ -95,3 +95,15 @@ def delete_customer(customer_id: str):
     if result is None:
         raise HTTPException(status_code=404, detail="Delete failed or customer not found")
     return {"message": result}
+
+
+# 一時的　500確認用
+
+import traceback
+from fastapi import Request
+from fastapi.responses import PlainTextResponse
+
+@app.exception_handler(Exception)
+async def dump_traceback(request: Request, exc: Exception):
+    return PlainTextResponse("TRACEBACK:\n" + traceback.format_exc(), status_code=500)
+
