@@ -1,35 +1,52 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-
 name: Build and deploy Python app to Azure Web App - app-002-gen10-step3-1-py-oshima6
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install minimal deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Deploy to Azure Web App
+      # === Zip を作って ZipDeploy（OneDeploy回避） ===
+      - name: Create deployment package
+        run: |
+          zip -r release.zip . -x "*.git*" "__pycache__/*" ".venv/*" "backend_env/*"
+
+      - name: Deploy to Azure Web App (ZipDeploy)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: app-002-gen10-step3-1-py-oshima6   # ★ App Service名と完全一致
+          app-name: app-002-gen10-step3-1-py-oshima6   # ←バックエンドの App Service 名
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: release.zip
+
+      # === デプロイ後に生存確認（200 OKを待つ） ===
+      - name: Smoke test
+        run: |
+          set -e
+          URL="https://app-002-gen10-step3-1-py-oshima6.azurewebsites.net/"
+          for i in {1..30}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
+            echo "attempt $i: $code"
+            if [ "$code" = "200" ]; then
+              echo "Smoke test OK"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Smoke test failed"
+          exit 1
