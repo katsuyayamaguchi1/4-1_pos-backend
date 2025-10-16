@@ -5,28 +5,30 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-# ★★★★★★★【ここを追加】★★★★★★★
 from fastapi.middleware.cors import CORSMiddleware
-# ★★★★★★★【ここまで追加】★★★★★★★
 
 app = FastAPI()
 
-# ★★★★★★★【ここを追加】★★★★★★★
-# フロントエンドのオリジン(http://localhost:3000)を許可する
 origins = [
     "http://localhost:3000",
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"], # すべてのHTTPメソッドを許可
-    allow_headers=["*"], # すべてのHTTPヘッダーを許可
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-# ★★★★★★★【ここまで追加】★★★★★★★
 
 from db_control import crud
+
+# ★★★★★★★【ここから追加】★★★★★★★
+# スモークテストをパスさせるためのトップページ
+@app.get("/")
+def read_root():
+    return {"message": "POS Backend is running"}
+# ★★★★★★★【ここまで追加】★★★★★★★
+
 
 # --- データモデル定義 (変更なし) ---
 class Product(BaseModel):
@@ -54,7 +56,6 @@ def create_purchase(req: PurchaseRequest):
     if not result:
         raise HTTPException(status_code=500, detail="Purchase failed")
     return result
-
 
 # 以下、STEP3ベース
 
