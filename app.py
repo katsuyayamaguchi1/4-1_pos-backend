@@ -10,7 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000",
+    "http://localhost:3000", # ローカル開発用
+    "https://app-002-gen10-step3-1-node-oshima6.azurewebsites.net", # 本番環境のフロントエンドURLを追加
 ]
 app.add_middleware(
     CORSMiddleware,
