@@ -1,24 +1,32 @@
-#以下、STEP4-1level1ベース
+# db_control/create_tables_MySQL.py
 
-# create_tables_MySQL.py
-
-# 同じフォルダにあるファイルをインポートするので、フォルダ名は不要
 from mymodels_MySQL import Base
 from connect_MySQL import engine
 
-def create_pos_tables():
+def recreate_database():
     """
-    POSアプリケーションに必要なテーブルをデータベースに作成します。
+    古いテーブルをすべて削除し、新しい定義で再作成する
     """
     try:
-        print("POSアプリ用のテーブルをAzure Database for MySQLに作成します...")
+        print("--- データベースの再作成を開始します ---")
+        
+        # 1. まず、古いテーブルをすべて削除します
+        print("🟡 1. 古いテーブルをすべて削除しています...")
+        Base.metadata.drop_all(bind=engine)
+        print("✅ 1. テーブルの削除が完了しました。")
+
+        # 2. 次に、新しいテーブルを作成します
+        print("🟡 2. Lv2用の新しいテーブルを作成しています...")
         Base.metadata.create_all(bind=engine)
-        print("テーブルの作成が完了しました。")
+        print("✅ 2. テーブルの作成が完了しました。")
+        
+        print("\n🎉 --- データベースの再作成が完了しました --- 🎉")
+
     except Exception as e:
-        print(f"作成中にエラーが発生しました: {e}")
+        print(f"❌ 再作成中にエラーが発生しました: {e}")
 
 if __name__ == "__main__":
-    create_pos_tables()
+    recreate_database()
 
 
 
